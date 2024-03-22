@@ -1,7 +1,46 @@
 use url::{Url, ParseError};
 
+
+fn normalize_surt(surt: &str) -> String {
+    let mut surt = surt.to_string();
+
+    // replace whitespace with %20
+    surt = surt.replace(" ", "%20");
+
+    let mut query_index = surt.find('?').unwrap_or_else(|| 0);
+    println!("{:?}", query_index);
+
+    // remove trailing slashes unless it's the root path
+    if query_index == 0 {
+        if surt.ends_with("/") && !surt.ends_with(")/") {
+            surt.pop();
+        }
+    }
+
+    // remove trailing slash for SURTs with query parameters
+    // unless it's the root path
+    let mut start = &mut surt[..query_index].to_string();
+    if start.ends_with("/") && !start.ends_with(")/") {
+        start.pop();
+    }
+    surt = format!("{}{}", start, &surt[query_index..]);
+
+    surt
+}
+
+fn normalize_url(url: &str) -> String {
+    let mut url = url.to_string();
+
+    // replace trailing slash
+    if url.ends_with("/") {
+        url.pop();
+    }
+
+    url
+}
+
 pub fn generate_surt(url: &str) -> Result<String, ParseError> {
-    let parsed = Url::parse(url)?;
+    let parsed = Url::parse(&normalize_url(url))?;
 
     let scheme = parsed.scheme();
     match scheme == "https" || scheme == "http" {
@@ -37,6 +76,8 @@ pub fn generate_surt(url: &str) -> Result<String, ParseError> {
         let fragment = parsed.fragment().unwrap().to_lowercase();
         surt += &format!("#{}", fragment);
     }
+
+    surt = normalize_surt(&surt);
 
     Ok(surt)
 }
@@ -85,9 +126,37 @@ mod tests {
   }
 
   #[test]
+  fn test_generate_surt_with_url_with_query_and_trailing_slash_after_path() {
+    let url = "http://example.com/foo/bar/?query=value";
+    let expected = "com,example)/foo/bar?query=value";
+    assert_eq!(generate_surt(url).unwrap(), expected);
+  }  
+
+  #[test]
   fn test_generate_surt_with_url_with_fragment() {
     let url = "http://example.com#fragment";
     let expected = "com,example)/#fragment";
+    assert_eq!(generate_surt(url).unwrap(), expected);
+  }
+
+  #[test]
+  fn test_generate_surt_with_url_with_uppercase() {
+    let url = "http://EXAMPLE.COM/PATH?QUERY=VALUE#FRAGMENT";
+    let expected = "com,example)/path?query=value#fragment";
+    assert_eq!(generate_surt(url).unwrap(), expected);
+  }
+
+  #[test]
+  fn test_generate_surt_with_url_with_space() {
+    let url = "http://example.com/path with space";
+    let expected = "com,example)/path%20with%20space";
+    assert_eq!(generate_surt(url).unwrap(), expected);
+  }
+
+  #[test]
+  fn test_generate_surt_with_url_with_trailing_slash() {
+    let url = "http://example.com/";
+    let expected = "com,example)/";
     assert_eq!(generate_surt(url).unwrap(), expected);
   }
 }
