@@ -3,6 +3,14 @@ name = "surt-rs"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "surt_rs"
+path = "src/lib.rs"
+
+[[bin]]
+name = "surt"
+path = "src/bin/surt.rs"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
