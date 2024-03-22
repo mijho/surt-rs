@@ -7,7 +7,7 @@ fn normalize_surt(surt: &str) -> String {
     // replace whitespace with %20
     surt = surt.replace(" ", "%20");
 
-    let mut query_index = surt.find('?').unwrap_or_else(|| 0);
+    let query_index = surt.find('?').unwrap_or_else(|| 0);
     println!("{:?}", query_index);
 
     // remove trailing slashes unless it's the root path
@@ -19,7 +19,7 @@ fn normalize_surt(surt: &str) -> String {
 
     // remove trailing slash for SURTs with query parameters
     // unless it's the root path
-    let mut start = &mut surt[..query_index].to_string();
+    let start = &mut surt[..query_index].to_string();
     if start.ends_with("/") && !start.ends_with(")/") {
         start.pop();
     }
@@ -34,6 +34,14 @@ fn normalize_url(url: &str) -> String {
     // replace trailing slash
     if url.ends_with("/") {
         url.pop();
+    }
+
+    // remove www subdomain after scheme
+    // TODO: make this less clunky
+    if url.starts_with("http://www.") {
+        url = url.replacen("http://www.", "http://", 1);
+    } else if url.starts_with("https://www.") {
+        url = url.replacen("https://www.", "https://", 1);
     }
 
     url
@@ -156,6 +164,20 @@ mod tests {
   #[test]
   fn test_generate_surt_with_url_with_trailing_slash() {
     let url = "http://example.com/";
+    let expected = "com,example)/";
+    assert_eq!(generate_surt(url).unwrap(), expected);
+  }
+
+  #[test]
+  fn test_generate_surt_with_url_with_trailing_slash_after_path() {
+    let url = "http://example.com/foo/bar/";
+    let expected = "com,example)/foo/bar";
+    assert_eq!(generate_surt(url).unwrap(), expected);
+  }
+
+  #[test]
+  fn test_generate_surt_with_url_with_www_subdomain() {
+    let url = "http://www.example.com";
     let expected = "com,example)/";
     assert_eq!(generate_surt(url).unwrap(), expected);
   }
