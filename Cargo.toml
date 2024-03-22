@@ -11,7 +11,5 @@ path = "src/lib.rs"
 name = "surt"
 path = "src/bin/surt.rs"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 url = "2.5.0"
