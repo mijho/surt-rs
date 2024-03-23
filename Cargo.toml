@@ -10,6 +10,14 @@ documentation = "https://github.com/mijho/surt-rs/blob/main/README.md"
 keywords = ["surt", "web", "url", "normalisation", "normalization", "web-archiving", "archive"]
 categories = ["text-processing"]
 edition = "2021"
+include = [
+    "README.md",
+    "LICENSE",
+    "src/bin/surt.rs",
+    "src/lib.rs",
+    "Cargo.toml",
+    "Cargo.lock"
+]
 
 [lib]
 name = "surt_rs"
