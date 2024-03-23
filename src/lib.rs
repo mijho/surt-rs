@@ -178,4 +178,31 @@ mod tests {
         let expected = "com,example)/";
         assert_eq!(generate_surt(url).unwrap(), expected);
     }
+
+    #[test]
+    fn test_generate_surt_with_ftp_url() {
+        let url = "ftp://www.example.com";
+        assert!(generate_surt(url).is_err());
+    }
+
+    #[test]
+    fn test_normalize_url_with_www_subdomain_and_https() {
+        let url = "https://www.example.com";
+        let expected = "https://example.com";
+        assert_eq!(normalize_url(url), expected);
+    }
+
+    #[test]
+    fn test_normalize_surt_root_with_trailing_slash() {
+        let url = "com,example)/";
+        let expected = "com,example)/";
+        assert_eq!(normalize_surt(url), expected);
+    }
+
+    #[test]
+    fn test_normalize_surt_with_trailing_slash() {
+        let url = "com,example)/foo/bar/";
+        let expected = "com,example)/foo/bar";
+        assert_eq!(normalize_surt(url), expected);
+    }
 }

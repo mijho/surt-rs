@@ -16,6 +16,10 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: fmt
-      run: cargo fmt --check
+      run: make fmt-check
+    - name: lint
+      run: make lint-check
     - name: Run tests
-      run: cargo test --verbose
+      run: make test
+    - name: Run coverage
+      run: make coverage
