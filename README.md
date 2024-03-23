@@ -1,6 +1,6 @@
-# Rust SURT Library
+# Rust SURT
 
-This library provides a Rust implementation for generating a Sort-friendly URI Reordering Transform (SURT) from a given URL. These are predominantly used in the Web Archiving world.
+This library provides a Rust implementation for generating a Sort-friendly URI Reordering Transform (SURT) from a given URL. These are predominantly used in the Web Archiving world to provide a normalised and sortable variant of a URL for use at replay time.
 
 ## Usage
 

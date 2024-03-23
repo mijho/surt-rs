@@ -1,5 +1,4 @@
-use url::{Url, ParseError};
-
+use url::{ParseError, Url};
 
 fn normalize_surt(surt: &str) -> String {
     let mut surt = surt.to_string();
@@ -53,7 +52,7 @@ pub fn generate_surt(url: &str) -> Result<String, ParseError> {
     let scheme = parsed.scheme();
     match scheme == "https" || scheme == "http" {
         true => scheme,
-        _ => return Err(ParseError::RelativeUrlWithoutBase)
+        _ => return Err(ParseError::RelativeUrlWithoutBase),
     };
 
     if parsed.host_str().is_none() {
@@ -67,7 +66,7 @@ pub fn generate_surt(url: &str) -> Result<String, ParseError> {
     if parsed.port().is_some() {
         let port = parsed.port().unwrap();
         surt += &format!(":{}", port);
-    }    
+    }
 
     if parsed.path() != "" {
         let path = parsed.path().to_lowercase();
@@ -92,93 +91,93 @@ pub fn generate_surt(url: &str) -> Result<String, ParseError> {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use super::*;
 
-  #[test]
-  fn test_generate_surt_with_valid_url() {
-    let url = "http://example.com/path?query=value#fragment";
-    let expected = "com,example)/path?query=value#fragment";
-    assert_eq!(generate_surt(url).unwrap(), expected);
-  }
+    #[test]
+    fn test_generate_surt_with_valid_url() {
+        let url = "http://example.com/path?query=value#fragment";
+        let expected = "com,example)/path?query=value#fragment";
+        assert_eq!(generate_surt(url).unwrap(), expected);
+    }
 
-  #[test]
-  fn test_generate_surt_with_url_without_scheme() {
-    let url = "example.com";
-    assert!(generate_surt(url).is_err());
-  }
+    #[test]
+    fn test_generate_surt_with_url_without_scheme() {
+        let url = "example.com";
+        assert!(generate_surt(url).is_err());
+    }
 
-  #[test]
-  fn test_generate_surt_with_relative_url() {
-    let url = "/path";
-    assert!(generate_surt(url).is_err());
-  }
+    #[test]
+    fn test_generate_surt_with_relative_url() {
+        let url = "/path";
+        assert!(generate_surt(url).is_err());
+    }
 
-  #[test]
-  fn test_generate_surt_with_url_without_host() {
-    let url = "http://";
-    assert!(generate_surt(url).is_err());
-  }
+    #[test]
+    fn test_generate_surt_with_url_without_host() {
+        let url = "http://";
+        assert!(generate_surt(url).is_err());
+    }
 
-  #[test]
-  fn test_generate_surt_with_url_with_port() {
-    let url = "http://example.com:8080";
-    let expected = "com,example:8080)/";
-    assert_eq!(generate_surt(url).unwrap(), expected);
-  }
+    #[test]
+    fn test_generate_surt_with_url_with_port() {
+        let url = "http://example.com:8080";
+        let expected = "com,example:8080)/";
+        assert_eq!(generate_surt(url).unwrap(), expected);
+    }
 
-  #[test]
-  fn test_generate_surt_with_url_with_query() {
-    let url = "http://example.com?query=value";
-    let expected = "com,example)/?query=value";
-    assert_eq!(generate_surt(url).unwrap(), expected);
-  }
+    #[test]
+    fn test_generate_surt_with_url_with_query() {
+        let url = "http://example.com?query=value";
+        let expected = "com,example)/?query=value";
+        assert_eq!(generate_surt(url).unwrap(), expected);
+    }
 
-  #[test]
-  fn test_generate_surt_with_url_with_query_and_trailing_slash_after_path() {
-    let url = "http://example.com/foo/bar/?query=value";
-    let expected = "com,example)/foo/bar?query=value";
-    assert_eq!(generate_surt(url).unwrap(), expected);
-  }  
+    #[test]
+    fn test_generate_surt_with_url_with_query_and_trailing_slash_after_path() {
+        let url = "http://example.com/foo/bar/?query=value";
+        let expected = "com,example)/foo/bar?query=value";
+        assert_eq!(generate_surt(url).unwrap(), expected);
+    }
 
-  #[test]
-  fn test_generate_surt_with_url_with_fragment() {
-    let url = "http://example.com#fragment";
-    let expected = "com,example)/#fragment";
-    assert_eq!(generate_surt(url).unwrap(), expected);
-  }
+    #[test]
+    fn test_generate_surt_with_url_with_fragment() {
+        let url = "http://example.com#fragment";
+        let expected = "com,example)/#fragment";
+        assert_eq!(generate_surt(url).unwrap(), expected);
+    }
 
-  #[test]
-  fn test_generate_surt_with_url_with_uppercase() {
-    let url = "http://EXAMPLE.COM/PATH?QUERY=VALUE#FRAGMENT";
-    let expected = "com,example)/path?query=value#fragment";
-    assert_eq!(generate_surt(url).unwrap(), expected);
-  }
+    #[test]
+    fn test_generate_surt_with_url_with_uppercase() {
+        let url = "http://EXAMPLE.COM/PATH?QUERY=VALUE#FRAGMENT";
+        let expected = "com,example)/path?query=value#fragment";
+        assert_eq!(generate_surt(url).unwrap(), expected);
+    }
 
-  #[test]
-  fn test_generate_surt_with_url_with_space() {
-    let url = "http://example.com/path with space";
-    let expected = "com,example)/path%20with%20space";
-    assert_eq!(generate_surt(url).unwrap(), expected);
-  }
+    #[test]
+    fn test_generate_surt_with_url_with_space() {
+        let url = "http://example.com/path with space";
+        let expected = "com,example)/path%20with%20space";
+        assert_eq!(generate_surt(url).unwrap(), expected);
+    }
 
-  #[test]
-  fn test_generate_surt_with_url_with_trailing_slash() {
-    let url = "http://example.com/";
-    let expected = "com,example)/";
-    assert_eq!(generate_surt(url).unwrap(), expected);
-  }
+    #[test]
+    fn test_generate_surt_with_url_with_trailing_slash() {
+        let url = "http://example.com/";
+        let expected = "com,example)/";
+        assert_eq!(generate_surt(url).unwrap(), expected);
+    }
 
-  #[test]
-  fn test_generate_surt_with_url_with_trailing_slash_after_path() {
-    let url = "http://example.com/foo/bar/";
-    let expected = "com,example)/foo/bar";
-    assert_eq!(generate_surt(url).unwrap(), expected);
-  }
+    #[test]
+    fn test_generate_surt_with_url_with_trailing_slash_after_path() {
+        let url = "http://example.com/foo/bar/";
+        let expected = "com,example)/foo/bar";
+        assert_eq!(generate_surt(url).unwrap(), expected);
+    }
 
-  #[test]
-  fn test_generate_surt_with_url_with_www_subdomain() {
-    let url = "http://www.example.com";
-    let expected = "com,example)/";
-    assert_eq!(generate_surt(url).unwrap(), expected);
-  }
+    #[test]
+    fn test_generate_surt_with_url_with_www_subdomain() {
+        let url = "http://www.example.com";
+        let expected = "com,example)/";
+        assert_eq!(generate_surt(url).unwrap(), expected);
+    }
 }
