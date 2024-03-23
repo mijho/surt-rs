@@ -22,4 +22,6 @@ jobs:
     - name: Run tests
       run: make test
     - name: Run coverage
-      run: make coverage
+      run: |
+        cargo install cargo-tarpaulin
+        make coverage
