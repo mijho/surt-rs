@@ -4,22 +4,20 @@ fn normalize_surt(surt: &str) -> String {
     let mut surt = surt.to_string();
 
     // replace whitespace with %20
-    surt = surt.replace(" ", "%20");
+    surt = surt.replace(' ', "%20");
 
-    let query_index = surt.find('?').unwrap_or_else(|| 0);
+    let query_index = surt.find('?').unwrap_or(0);
     println!("{:?}", query_index);
 
     // remove trailing slashes unless it's the root path
-    if query_index == 0 {
-        if surt.ends_with("/") && !surt.ends_with(")/") {
-            surt.pop();
-        }
+    if query_index == 0 && surt.ends_with('/') && !surt.ends_with(")/") {
+        surt.pop();
     }
 
     // remove trailing slash for SURTs with query parameters
     // unless it's the root path
     let start = &mut surt[..query_index].to_string();
-    if start.ends_with("/") && !start.ends_with(")/") {
+    if start.ends_with('/') && !start.ends_with(")/") {
         start.pop();
     }
     surt = format!("{}{}", start, &surt[query_index..]);
@@ -31,7 +29,7 @@ fn normalize_url(url: &str) -> String {
     let mut url = url.to_string();
 
     // replace trailing slash
-    if url.ends_with("/") {
+    if url.ends_with('/') {
         url.pop();
     }
 
@@ -179,5 +177,32 @@ mod tests {
         let url = "http://www.example.com";
         let expected = "com,example)/";
         assert_eq!(generate_surt(url).unwrap(), expected);
+    }
+
+    #[test]
+    fn test_generate_surt_with_ftp_url() {
+        let url = "ftp://www.example.com";
+        assert!(generate_surt(url).is_err());
+    }
+
+    #[test]
+    fn test_normalize_url_with_www_subdomain_and_https() {
+        let url = "https://www.example.com";
+        let expected = "https://example.com";
+        assert_eq!(normalize_url(url), expected);
+    }
+
+    #[test]
+    fn test_normalize_surt_root_with_trailing_slash() {
+        let url = "com,example)/";
+        let expected = "com,example)/";
+        assert_eq!(normalize_surt(url), expected);
+    }
+
+    #[test]
+    fn test_normalize_surt_with_trailing_slash() {
+        let url = "com,example)/foo/bar/";
+        let expected = "com,example)/foo/bar";
+        assert_eq!(normalize_surt(url), expected);
     }
 }
