@@ -5,7 +5,7 @@ This library provides a Rust implementation for generating a Sort-friendly URI R
 ## Usage
 
 ```rust
-use surt::generate_surt;
+use surt_rs::generate_surt;
 
 let url = "http://example.com/path?query=value#fragment";
 let surt = generate_surt(url).unwrap();

@@ -7,7 +7,6 @@ fn normalize_surt(surt: &str) -> String {
     surt = surt.replace(' ', "%20");
 
     let query_index = surt.find('?').unwrap_or(0);
-    println!("{:?}", query_index);
 
     // remove trailing slashes unless it's the root path
     if query_index == 0 && surt.ends_with('/') && !surt.ends_with(")/") {
