@@ -23,3 +23,10 @@ lint:
 
 lint-check:
 	@cargo clippy -- -D warnings
+
+publish:
+	@cargo publish
+
+publish-dry-run:
+	@cargo publish --dry-run
+	@cargo package --list
