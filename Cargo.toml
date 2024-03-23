@@ -1,6 +1,14 @@
 [package]
 name = "surt-rs"
 version = "0.1.0"
+authors = ["Mark Johnson <mark@mijho.co>"]
+description = "A Rust implementation of the Sort-friendly URI Reordering Transform (SURT)"
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/mijho/surt-rs"
+documentation = "https://github.com/mijho/surt-rs/blob/main/README.md"
+keywords = ["surt", "web", "url", "normalisation", "normalization", "web-archiving", "archive"]
+categories = ["text-processing"]
 edition = "2021"
 
 [lib]
