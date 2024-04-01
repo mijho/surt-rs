@@ -1,7 +1,11 @@
+use regex::Regex;
 use url::{ParseError, Url};
 
 fn normalize_surt(surt: &str) -> String {
     let mut surt = surt.to_string();
+
+    // decode surt
+    surt = url_escape::decode(&surt).to_string();
 
     // replace whitespace with %20
     surt = surt.replace(' ', "%20");
@@ -24,27 +28,52 @@ fn normalize_surt(surt: &str) -> String {
     surt
 }
 
-fn normalize_url(url: &str) -> String {
-    let mut url = url.to_string();
+fn normalize_url(mut parsed: Url) -> String {
+    println!("parsed: {:?}", parsed);
 
-    // replace trailing slash
-    if url.ends_with('/') {
+    let session_regexp = Regex::new(r"(?i)(&|^)(?:jsessionid=[0-9a-z$]{10,}|sessionid=[0-9a-z]{16,}|phpsessid=[0-9a-z]{16,}|sid=[0-9a-z]{16,}|aspsessionid[a-z]{8}=[0-9a-z]{16,}|cfid=[0-9]+&cftoken=[0-9a-z-]+)(&|$)").unwrap();
+    // lowercase and sort query parameters
+    if parsed.query().is_some() {
+        let mut query = parsed.query().unwrap().split('&').collect::<Vec<&str>>();
+        query.sort();
+        let mut query = query.join("&").to_lowercase();
+        query = session_regexp.replace_all(&query, "$1$3").to_string();
+        parsed.set_query(Some(&query));
+    }
+
+    let www_regexp = Regex::new(r"^www(\w?)+\.(.*\.+)").unwrap();
+    if parsed.host_str().is_some() {
+        // remove www(ish) subdomain
+        let host_str = parsed.host_str().unwrap();
+        let host_str = www_regexp.replace(host_str, "${2}").to_string();
+
+        // lowercase host
+        let host_str = host_str.to_lowercase();
+
+        parsed.set_host(Some(&host_str)).unwrap();
+    }
+
+    println!("parsed: {:?}", parsed);
+
+    let mut url = parsed.to_string();
+
+    // replace trailing slash unless it's the root path
+    if url.ends_with('/') && parsed.path() != "/" {
         url.pop();
     }
 
-    // remove www subdomain after scheme
-    // TODO: make this less clunky
-    if url.starts_with("http://www.") {
-        url = url.replacen("http://www.", "http://", 1);
-    } else if url.starts_with("https://www.") {
-        url = url.replacen("https://www.", "https://", 1);
+    // replace trailing ?
+    if url.ends_with('?') {
+        url.pop();
     }
 
+    println!("url: {:?}", url);
     url
 }
 
 pub fn generate_surt(url: &str) -> Result<String, ParseError> {
-    let parsed = Url::parse(&normalize_url(url))?;
+    let mut parsed = Url::parse(url)?;
+    parsed = Url::parse(&normalize_url(parsed))?;
 
     let scheme = parsed.scheme();
     match scheme == "https" || scheme == "http" {
@@ -71,9 +100,8 @@ pub fn generate_surt(url: &str) -> Result<String, ParseError> {
     }
 
     if parsed.query().is_some() {
-        let mut query = parsed.query().unwrap().split('&').collect::<Vec<&str>>();
-        query.sort();
-        surt += &format!("?{}", query.join("&").to_lowercase());
+        let query = parsed.query().unwrap().to_lowercase();
+        surt += &format!("?{}", query);
     }
 
     if parsed.fragment().is_some() {
@@ -89,6 +117,69 @@ pub fn generate_surt(url: &str) -> Result<String, ParseError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_json::Value;
+    use std::collections::HashMap;
+    use std::fs::File;
+    use std::io::BufReader;
+
+    fn load_test_data() -> HashMap<String, HashMap<String, String>> {
+        let file = File::open("./test_data/surt.json").unwrap();
+        let reader = BufReader::new(file);
+        let v: Value = serde_json::from_reader(reader).unwrap();
+        v.as_object()
+            .unwrap()
+            .iter()
+            .map(|(k, v)| {
+                let inner_map = v
+                    .as_object()
+                    .unwrap()
+                    .iter()
+                    .map(|(k, v)| (k.clone(), v.as_str().unwrap().to_string()))
+                    .collect();
+                (k.clone(), inner_map)
+            })
+            .collect()
+    }
+
+    #[test]
+    fn test_surt() {
+        let test_data = load_test_data();
+
+        for (section, examples) in test_data {
+            // if section does not include surt case insensitive skip
+            if !section.to_lowercase().contains("surt") {
+                continue;
+            }
+            println!("Testing section: {}", section);
+
+            for (input, expected) in examples {
+                println!("Testing example: {}", input);
+                let surt = generate_surt(&input).unwrap();
+                assert_eq!(surt, expected);
+            }
+        }
+    }
+
+    #[test]
+    fn test_url_normalization() {
+        let test_data = load_test_data();
+
+        for (section, examples) in test_data {
+            // if section does not include url_normalization case insensitive skip
+            if !section.to_lowercase().contains("url_normalization") {
+                continue;
+            }
+            println!("Testing section: {}", section);
+
+            for (input, expected) in examples {
+                println!("Testing example: {}", input);
+                let parsed = Url::parse(&input);
+                println!("parsed: {:?}", parsed);
+                let url = normalize_url(Url::parse(&input).unwrap());
+                assert_eq!(url, expected);
+            }
+        }
+    }
 
     #[test]
     fn test_generate_surt_with_valid_url() {
@@ -186,8 +277,8 @@ mod tests {
 
     #[test]
     fn test_normalize_url_with_www_subdomain_and_https() {
-        let url = "https://www.example.com";
-        let expected = "https://example.com";
+        let url = Url::parse("https://www.example.com").unwrap();
+        let expected = "https://example.com/";
         assert_eq!(normalize_url(url), expected);
     }
 
