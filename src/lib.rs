@@ -1,5 +1,6 @@
 use regex::Regex;
 use url::{ParseError, Url};
+use lazy_static::lazy_static;
 
 fn normalize_surt(surt: &str) -> String {
     let mut surt = surt.to_string();
@@ -28,24 +29,27 @@ fn normalize_surt(surt: &str) -> String {
     surt
 }
 
+lazy_static! {
+	static ref SESSION_REGEXP: Regex = Regex::new(r"(?i)(&|^)(?:jsessionid=[0-9a-z$]{10,}|sessionid=[0-9a-z]{16,}|phpsessid=[0-9a-z]{16,}|sid=[0-9a-z]{16,}|aspsessionid[a-z]{8}=[0-9a-z]{16,}|cfid=[0-9]+&cftoken=[0-9a-z-]+)(&|$)").unwrap();
+	static ref WWW_REGEXP: Regex = Regex::new(r"^www(\w?)+\.(.*\.+)").unwrap();
+}
+
 fn normalize_url(mut parsed: Url) -> String {
     println!("parsed: {:?}", parsed);
 
-    let session_regexp = Regex::new(r"(?i)(&|^)(?:jsessionid=[0-9a-z$]{10,}|sessionid=[0-9a-z]{16,}|phpsessid=[0-9a-z]{16,}|sid=[0-9a-z]{16,}|aspsessionid[a-z]{8}=[0-9a-z]{16,}|cfid=[0-9]+&cftoken=[0-9a-z-]+)(&|$)").unwrap();
     // lowercase and sort query parameters
     if parsed.query().is_some() {
         let mut query = parsed.query().unwrap().split('&').collect::<Vec<&str>>();
         query.sort();
         let mut query = query.join("&").to_lowercase();
-        query = session_regexp.replace_all(&query, "$1$3").to_string();
+        query = SESSION_REGEXP.replace_all(&query, "$1$3").to_string();
         parsed.set_query(Some(&query));
     }
 
-    let www_regexp = Regex::new(r"^www(\w?)+\.(.*\.+)").unwrap();
     if parsed.host_str().is_some() {
         // remove www(ish) subdomain
         let host_str = parsed.host_str().unwrap();
-        let host_str = www_regexp.replace(host_str, "${2}").to_string();
+        let host_str = WWW_REGEXP.replace(host_str, "${2}").to_string();
 
         // lowercase host
         let host_str = host_str.to_lowercase();
