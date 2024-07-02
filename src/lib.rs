@@ -35,8 +35,6 @@ lazy_static! {
 }
 
 fn normalize_url(mut parsed: Url) -> String {
-    println!("parsed: {:?}", parsed);
-
     // lowercase and sort query parameters
     if parsed.query().is_some() {
         let mut query = parsed.query().unwrap().split('&').collect::<Vec<&str>>();
@@ -57,8 +55,6 @@ fn normalize_url(mut parsed: Url) -> String {
         parsed.set_host(Some(&host_str)).unwrap();
     }
 
-    println!("parsed: {:?}", parsed);
-
     let mut url = parsed.to_string();
 
     // replace trailing slash unless it's the root path
@@ -71,7 +67,6 @@ fn normalize_url(mut parsed: Url) -> String {
         url.pop();
     }
 
-    println!("url: {:?}", url);
     url
 }
 
