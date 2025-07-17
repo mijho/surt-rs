@@ -62,8 +62,8 @@ fn normalize_url(mut parsed: Url) -> String {
         url.pop();
     }
 
-    // replace trailing ?
-    if url.ends_with('?') {
+    // replace trailing ? and &
+    if url.ends_with(['?', '&']) {
         url.pop();
     }
 
@@ -272,6 +272,14 @@ mod tests {
     fn test_generate_surt_with_ftp_url() {
         let url = "ftp://www.example.com";
         assert!(generate_surt(url).is_err());
+    }
+
+    #[test]
+    fn test_generate_surt_with_magic_ampersand() {
+        let url = "http://www.example.com/khxc/index.php?app=ccp0&ns=catshow&ref=kawasaki&prodsort=PRICEUP&sid=ze2509b1v54ldiu17199jlcf8n88cquz";
+        let expected =
+            "com,example)/khxc/index.php?app=ccp0&ns=catshow&prodsort=priceup&ref=kawasaki";
+        assert_eq!(generate_surt(url).unwrap(), expected);
     }
 
     #[test]
