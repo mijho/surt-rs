@@ -9,6 +9,7 @@ repository = "https://github.com/mijho/surt-rs"
 documentation = "https://github.com/mijho/surt-rs/blob/main/README.md"
 keywords = ["surt", "normalization", "web-archiving", "archive"]
 categories = ["text-processing"]
+rust-version = "1.80"
 edition = "2021"
 include = [
     "README.md",
@@ -31,7 +32,6 @@ path = "src/bin/surt.rs"
 regex = "1.10.4"
 url = "2.5.0"
 url-escape = "0.1.1"
-lazy_static = "1.4.0"
 
 [dev-dependencies]
 serde_json = "1.0.115"

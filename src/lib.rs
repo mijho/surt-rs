@@ -1,4 +1,5 @@
-use lazy_static::lazy_static;
+use std::sync::LazyLock;
+
 use regex::Regex;
 use url::{ParseError, Url};
 
@@ -29,10 +30,10 @@ fn normalize_surt(surt: &str) -> String {
     surt
 }
 
-lazy_static! {
-    static ref SESSION_REGEXP: Regex = Regex::new(r"(?i)(&|^)(?:jsessionid=[0-9a-z$]{10,}|sessionid=[0-9a-z]{16,}|phpsessid=[0-9a-z]{16,}|sid=[0-9a-z]{16,}|aspsessionid[a-z]{8}=[0-9a-z]{16,}|cfid=[0-9]+&cftoken=[0-9a-z-]+)(&|$)").unwrap();
-    static ref WWW_REGEXP: Regex = Regex::new(r"^www(\w?)+\.(.*\.+)").unwrap();
-}
+static SESSION_REGEXP: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(&|^)(?:jsessionid=[0-9a-z$]{10,}|sessionid=[0-9a-z]{16,}|phpsessid=[0-9a-z]{16,}|sid=[0-9a-z]{16,}|aspsessionid[a-z]{8}=[0-9a-z]{16,}|cfid=[0-9]+&cftoken=[0-9a-z-]+)(&|$)").unwrap()
+});
+static WWW_REGEXP: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^www(\w?)+\.(.*\.+)").unwrap());
 
 fn normalize_url(mut parsed: Url) -> String {
     // lowercase and sort query parameters
