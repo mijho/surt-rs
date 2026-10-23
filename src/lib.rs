@@ -275,6 +275,15 @@ mod tests {
     }
 
     #[test]
+    fn test_generate_surt_with_magic_ampersand() {
+        // A trailing session parameter must not leave a dangling `&`.
+        let url = "http://www.example.com/khxc/index.php?app=ccp0&ns=catshow&ref=kawasaki&prodsort=PRICEUP&sid=ze2509b1v54ldiu17199jlcf8n88cquz";
+        let expected =
+            "com,example)/khxc/index.php?app=ccp0&ns=catshow&prodsort=priceup&ref=kawasaki";
+        assert_eq!(generate_surt(url).unwrap(), expected);
+    }
+
+    #[test]
     fn test_generate_surt_with_url_with_port() {
         let url = "http://example.com:8080";
         let expected = "com,example:8080)/";
